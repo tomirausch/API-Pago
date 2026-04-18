@@ -1,4 +1,4 @@
-package com.tomas.payments.infraestructure.controller;
+package com.tomas.payments.infrastructure.adapters.input.rest;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tomas.payments.domain.model.Payment;
 import com.tomas.payments.domain.model.PaymentStatus;
-import com.tomas.payments.infraestructure.adapter.PaymentJpa;
+import com.tomas.payments.infrastructure.adapters.output.persistence.PaymentJpa;
 
 @RestController
 @RequestMapping("/health")

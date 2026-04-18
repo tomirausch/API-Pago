@@ -1,7 +1,6 @@
-package com.tomas.payments.domain.mappers;
+package com.tomas.payments.infrastructure.adapters.output.persistence;
 
 import com.tomas.payments.domain.model.Payment;
-import com.tomas.payments.infraestructure.persistence.PaymentEntity;
 
 public class Mapper {
 

@@ -15,7 +15,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CreatePaymentRequest {
+public class PaymentRequest {
 
     @NotBlank
     private String idempotencyKey;

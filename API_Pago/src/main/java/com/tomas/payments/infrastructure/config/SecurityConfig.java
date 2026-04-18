@@ -1,4 +1,4 @@
-package com.tomas.payments.infraestructure.config;
+package com.tomas.payments.infrastructure.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

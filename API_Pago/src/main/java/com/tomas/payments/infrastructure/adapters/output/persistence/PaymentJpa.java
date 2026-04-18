@@ -1,13 +1,11 @@
-package com.tomas.payments.infraestructure.adapter;
+package com.tomas.payments.infrastructure.adapters.output.persistence;
 
 import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
-import com.tomas.payments.domain.mappers.Mapper;
 import com.tomas.payments.domain.model.Payment;
-import com.tomas.payments.domain.ports.PaymentRepository;
-import com.tomas.payments.infraestructure.persistence.SpringDataPaymentsRepository;
+import com.tomas.payments.domain.ports.output.PaymentRepository;
 
 @Repository
 public class PaymentJpa implements PaymentRepository {

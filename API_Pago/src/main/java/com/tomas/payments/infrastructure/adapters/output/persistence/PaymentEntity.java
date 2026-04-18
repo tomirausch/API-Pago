@@ -1,4 +1,4 @@
-package com.tomas.payments.infraestructure.persistence;
+package com.tomas.payments.infrastructure.adapters.output.persistence;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

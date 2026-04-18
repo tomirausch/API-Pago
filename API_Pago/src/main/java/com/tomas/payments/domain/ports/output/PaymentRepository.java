@@ -1,4 +1,4 @@
-package com.tomas.payments.domain.ports;
+package com.tomas.payments.domain.ports.output;
 
 import java.util.Optional;
 
