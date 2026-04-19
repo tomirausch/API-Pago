@@ -10,12 +10,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tomas.payments.domain.model.Payment;
 import com.tomas.payments.domain.model.PaymentStatus;
-import com.tomas.payments.infrastructure.adapters.output.persistence.PaymentJpa;
+import com.tomas.payments.infrastructure.adapters.output.persistence.JpaPaymentRepositoryAdapter;
 
 @RestController
 @RequestMapping("/health")
 public class HealthController {
-    private PaymentJpa repository;
+    private JpaPaymentRepositoryAdapter repository;
 
     @GetMapping
     public String health(){
