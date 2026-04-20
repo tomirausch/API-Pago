@@ -21,6 +21,15 @@ public class Payment {
     private LocalDateTime updatedAt;
     
     public static Payment create(String idempotencyKey, BigDecimal amount, String currency) {
+        if(idempotencyKey == null || idempotencyKey.isEmpty()) {
+            throw new IllegalArgumentException("Idempotency key is required");
+        }
+        if(amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Amount must be greater than zero");
+        }
+        if(currency == null || currency.isEmpty()) {
+            throw new IllegalArgumentException("Currency is required");
+        }
         return Payment.builder()
             .idempotencyKey(idempotencyKey)
             .amount(amount)
