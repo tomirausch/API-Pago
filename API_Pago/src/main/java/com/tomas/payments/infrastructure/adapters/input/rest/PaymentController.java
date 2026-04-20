@@ -40,10 +40,10 @@ public class PaymentController {
         var savedPayment = createPayment.createPayment(payment);
         return PaymentRestMapper.toResponse(savedPayment);
     }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<PaymentResponse> getById(@PathVariable @NotBlank String id) {
-        return getPaymentUseCase.findByIdempotencyKey(id)
+    
+    @GetMapping("/idempotency/{key}")
+    public ResponseEntity<PaymentResponse> getById(@PathVariable @NotBlank String key) {
+        return getPaymentUseCase.findByIdempotencyKey(key)
             .map(payment -> ResponseEntity.ok(PaymentRestMapper.toResponse(payment)))
             .orElse(ResponseEntity.notFound().build());
     }
