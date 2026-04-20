@@ -16,9 +16,11 @@ public class PaymentRestMapper {
 
     public static PaymentResponse toResponse(Payment payment) {
         return PaymentResponse.builder()
+            .id(payment.getId())
             .idempotencyKey(payment.getIdempotencyKey())
             .amount(payment.getAmount())
             .currency(payment.getCurrency())
+            .status(payment.getStatus())
             .build();
     }
 }
