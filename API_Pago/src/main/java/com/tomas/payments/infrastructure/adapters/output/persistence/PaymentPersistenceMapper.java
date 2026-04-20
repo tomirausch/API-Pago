@@ -2,7 +2,7 @@ package com.tomas.payments.infrastructure.adapters.output.persistence;
 
 import com.tomas.payments.domain.model.Payment;
 
-public class Mapper {
+public class PaymentPersistenceMapper {
 
     public static Payment toDomain(PaymentEntity entity){
         return Payment.builder()
@@ -11,6 +11,8 @@ public class Mapper {
                 .currency(entity.getCurrency())
                 .idempotencyKey(entity.getIdempotencyKey())
                 .status(entity.getStatus())
+                .createdAt(entity.getCreatedAt())
+                .updatedAt(entity.getUpdatedAt())
                 .build();
     }
 
@@ -21,6 +23,8 @@ public class Mapper {
                 .currency(payment.getCurrency())
                 .idempotencyKey(payment.getIdempotencyKey())
                 .status(payment.getStatus())
+                .createdAt(payment.getCreatedAt())
+                .updatedAt(payment.getUpdatedAt())
                 .build();
     }
 

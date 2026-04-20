@@ -4,30 +4,31 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import jakarta.persistence.*;
 import lombok.*;
 
-@Getter @Setter
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Entity
 public class Payment {
 
-    @Id 
-    @GeneratedValue
     private UUID id;
-
     private BigDecimal amount;
     private String currency;
-
-    @Enumerated(EnumType.STRING)
     private PaymentStatus status;
-
-    @Column(unique = true)
     private String idempotencyKey;
-
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    
+    public static Payment create(String idempotencyKey, BigDecimal amount, String currency) {
+        return Payment.builder()
+            .idempotencyKey(idempotencyKey)
+            .amount(amount)
+            .currency(currency)
+            .status(PaymentStatus.PENDING)
+            .createdAt(LocalDateTime.now())
+            .updatedAt(LocalDateTime.now())
+            .build();
+    }
 
 }

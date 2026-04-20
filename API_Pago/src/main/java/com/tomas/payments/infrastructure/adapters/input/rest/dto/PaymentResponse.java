@@ -1,4 +1,4 @@
-package com.tomas.payments.application.dto;
+package com.tomas.payments.infrastructure.adapters.input.rest.dto;
 
 import java.math.BigDecimal;
 
