@@ -8,32 +8,36 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tomas.payments.application.ports.input.CreatePaymentUseCase;
 import com.tomas.payments.domain.model.Payment;
 import com.tomas.payments.domain.model.PaymentStatus;
+import com.tomas.payments.infrastructure.adapters.input.rest.dto.PaymentResponse;
+import com.tomas.payments.infrastructure.adapters.input.rest.mapper.PaymentRestMapper;
 import com.tomas.payments.infrastructure.adapters.output.persistence.JpaPaymentRepositoryAdapter;
 
 @RestController
 @RequestMapping("/health")
 public class HealthController {
-    private JpaPaymentRepositoryAdapter repository;
+
+    private final CreatePaymentUseCase createPaymentUseCase;
+
+    public HealthController(CreatePaymentUseCase createPaymentUseCase) {
+        this.createPaymentUseCase = createPaymentUseCase;
+    }
 
     @GetMapping
-    public String health(){
+    public String health() {
         return "Ok";
     }
 
     @PostMapping("/test-payment")
-    
-    public Payment createTest() {
-        Payment payment = Payment.builder()
-                .amount(new BigDecimal("100"))
-                .currency("USD")
-                .status(PaymentStatus.PENDING)
-                .idempotencyKey("test-key")
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
-
-        return repository.save(payment);
-}
+    public PaymentResponse createTest() {
+        Payment payment = Payment.create(
+            "test-key-" + System.currentTimeMillis(),  // único por llamada
+            new BigDecimal("100"),
+            "USD"
+        );
+        Payment saved = createPaymentUseCase.createPayment(payment);
+        return PaymentRestMapper.toResponse(saved);
+    }
 }
