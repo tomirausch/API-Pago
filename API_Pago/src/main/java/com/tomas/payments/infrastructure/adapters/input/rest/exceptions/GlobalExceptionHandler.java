@@ -15,6 +15,7 @@ import org.springframework.web.context.request.WebRequest;
 
 import com.tomas.payments.application.exceptions.PaymentPersistenceException;
 import com.tomas.payments.domain.exceptions.DuplicateIdempotencyKeyException;
+import com.tomas.payments.domain.exceptions.PaymentNotFoundException;
 import com.tomas.payments.infrastructure.adapters.input.rest.dto.ErrorResponse;
 
 @RestControllerAdvice
@@ -22,12 +23,26 @@ public class GlobalExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    @ExceptionHandler(PaymentNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handlePaymentNotFound(PaymentNotFoundException e, WebRequest request) {
+
+        logger.warn("Payment not found. Path: {} - Message: {}", extractPath(request), e.getMessage());
+
+        ErrorResponse error = new ErrorResponse(
+                e.getMessage(),
+                Instant.now(),
+                ErrorCode.PAYMENT_NOT_FOUND.name(),
+                null,
+                request.getDescription(false));
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
     @ExceptionHandler(DuplicateIdempotencyKeyException.class)
     public ResponseEntity<ErrorResponse> handleDuplicateIdempotencyKey(DuplicateIdempotencyKeyException e,
             WebRequest request) {
 
         logger.warn("Duplicate idempotency key. Path: {} - Message: {}", extractPath(request), e.getMessage());
-        
+
         ErrorResponse error = new ErrorResponse(
                 resolveMessage(ErrorCode.DUPLICATE_IDEMPOTENCY_KEY, null),
                 Instant.now(),
@@ -110,6 +125,8 @@ public class GlobalExceptionHandler {
             case INVALID_REQUEST_PARAMETERS -> "Invalid request parameters";
             case INVALID_ARGUMENT -> "Invalid argument provided";
             case INTERNAL_ERROR -> "Internal server error";
+            case PAYMENT_NOT_FOUND -> "Payment not found";
+            case EXTERNAL_SERVICE_ERROR -> "External service error";
         };
     }
 

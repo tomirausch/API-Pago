@@ -10,9 +10,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "payment", uniqueConstraints = {
-        @UniqueConstraint(columnNames = "idempotency_key")
-})
+@Table(name = "payment")
 @Getter
 @Setter
 @NoArgsConstructor

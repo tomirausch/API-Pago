@@ -40,4 +40,27 @@ public class Payment {
             .build();
     }
 
+    public void updateStatus(PaymentStatus newStatus) {
+        if (newStatus == null) {
+            throw new IllegalArgumentException("New status is required");
+        }
+
+        if (this.status == PaymentStatus.COMPLETED) {
+            throw new IllegalStateException("Cannot change a COMPLETED payment");
+        }
+
+        if (this.status == PaymentStatus.FAILED) {
+            throw new IllegalStateException("Cannot change a FAILED payment");
+        }
+
+        if (this.status == PaymentStatus.PENDING) {
+            if (newStatus != PaymentStatus.COMPLETED && newStatus != PaymentStatus.FAILED) {
+                throw new IllegalArgumentException("Invalid status transition from PENDING");
+            }
+        }
+
+        this.status = newStatus;
+        this.updatedAt = LocalDateTime.now();
+    }
+
 }

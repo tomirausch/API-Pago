@@ -1,6 +1,7 @@
 package com.tomas.payments.infrastructure.adapters.output.persistence;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Repository;
@@ -30,5 +31,10 @@ public class JpaPaymentRepositoryAdapter implements PaymentRepositoryPort {
         } catch (DataIntegrityViolationException e) {
             throw new DuplicateIdempotencyKeyException("Payment with idempotency key " + payment.getIdempotencyKey() + " already exists", e);
         }
+    }
+
+    @Override
+    public Optional<Payment> findById(UUID paymentId) {
+        return repository.findById(paymentId).map(PaymentPersistenceMapper::toDomain);
     }
 }
