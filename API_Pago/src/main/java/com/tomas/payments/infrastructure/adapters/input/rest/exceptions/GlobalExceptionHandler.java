@@ -31,7 +31,7 @@ public class GlobalExceptionHandler {
         ErrorResponse error = new ErrorResponse(
                 resolveMessage(ErrorCode.DUPLICATE_IDEMPOTENCY_KEY, null),
                 Instant.now(),
-                ErrorCode.DUPLICATE_IDEMPOTENCY_KEY,
+                ErrorCode.DUPLICATE_IDEMPOTENCY_KEY.name(),
                 null,
                 request.getDescription(false));
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
@@ -45,7 +45,7 @@ public class GlobalExceptionHandler {
         ErrorResponse error = new ErrorResponse(
                 resolveMessage(ErrorCode.PAYMENT_PERSISTENCE_ERROR, null),
                 Instant.now(),
-                ErrorCode.PAYMENT_PERSISTENCE_ERROR,
+                ErrorCode.PAYMENT_PERSISTENCE_ERROR.name(),
                 null,
                 request.getDescription(false));
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
@@ -66,7 +66,7 @@ public class GlobalExceptionHandler {
         ErrorResponse error = new ErrorResponse(
                 resolveMessage(ErrorCode.INVALID_REQUEST_PARAMETERS, null),
                 Instant.now(),
-                ErrorCode.INVALID_REQUEST_PARAMETERS,
+                ErrorCode.INVALID_REQUEST_PARAMETERS.name(),
                 details,
                 request.getDescription(false));
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
@@ -78,7 +78,7 @@ public class GlobalExceptionHandler {
         ErrorResponse error = new ErrorResponse(
                 resolveMessage(ErrorCode.INVALID_ARGUMENT, null),
                 Instant.now(),
-                ErrorCode.INVALID_ARGUMENT,
+                ErrorCode.INVALID_ARGUMENT.name(),
                 null,
                 request.getDescription(false));
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
@@ -93,7 +93,7 @@ public class GlobalExceptionHandler {
         ErrorResponse error = new ErrorResponse(
                 resolveMessage(ErrorCode.INTERNAL_ERROR, null),
                 Instant.now(),
-                ErrorCode.INTERNAL_ERROR,
+                ErrorCode.INTERNAL_ERROR.name(),
                 null,
                 request.getDescription(false));
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);

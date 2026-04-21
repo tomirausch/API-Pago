@@ -16,7 +16,7 @@ public class ErrorResponse {
 
     private String message;
     private Instant timestamp;
-    private ErrorCode code;
+    private String code;
     private List<String> errors;
     private String path;
 

@@ -34,11 +34,13 @@ public class PaymentController {
     }
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public PaymentResponse createPayment(@Valid @RequestBody PaymentRequest request) {
+    public ResponseEntity<PaymentResponse> createPayment(@Valid @RequestBody PaymentRequest request) {
         var payment = PaymentRestMapper.toDomain(request);
         var savedPayment = createPayment.createPayment(payment);
-        return PaymentRestMapper.toResponse(savedPayment);
+        var response = PaymentRestMapper.toResponse(savedPayment.getPayment());
+        return ResponseEntity
+                .status(savedPayment.isNew() ? HttpStatus.CREATED : HttpStatus.OK)
+                .body(response);
     }
     
     @GetMapping("/idempotency/{key}")

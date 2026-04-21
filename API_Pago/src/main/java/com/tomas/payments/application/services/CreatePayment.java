@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tomas.payments.application.exceptions.PaymentPersistenceException;
 import com.tomas.payments.application.ports.input.CreatePaymentUseCase;
 import com.tomas.payments.application.ports.output.PaymentRepositoryPort;
+import com.tomas.payments.application.services.dto.CreatePaymentResult;
 import com.tomas.payments.domain.exceptions.DuplicateIdempotencyKeyException;
 import com.tomas.payments.domain.model.Payment;
 
@@ -23,31 +24,41 @@ public class CreatePayment implements CreatePaymentUseCase {
 
     @Override
     @Transactional
-    public Payment createPayment(Payment payment) {
+    public CreatePaymentResult createPayment(Payment payment) {
         String idempotencyKey = payment.getIdempotencyKey();
         logger.info("Attempting to create payment with idempotency key: {}", idempotencyKey);
-        
+
         return paymentRepository.findByIdempotencyKey(idempotencyKey)
-            .map(existingPayment -> {
-                logger.info("Payment with idempotency key {} already exists. Reusing existing payment with ID: {}", 
-                    idempotencyKey, existingPayment.getId());
-                return existingPayment;
-            })
-            .orElseGet(() -> {
-                try {
-                    logger.debug("No existing payment found. Creating new payment with idempotency key: {}", idempotencyKey);
-                    Payment savedPayment = paymentRepository.save(payment);
-                    logger.info("Payment successfully created. ID: {}, idempotency key: {}, amount: {}, status: {}", 
-                        savedPayment.getId(), idempotencyKey, savedPayment.getAmount(), savedPayment.getStatus());
-                    return savedPayment;
-                } catch (DuplicateIdempotencyKeyException e) {
-                    logger.warn("Duplicate idempotency key detected: {}. Attempting to retrieve existing payment.", idempotencyKey);
-                    return paymentRepository.findByIdempotencyKey(idempotencyKey)
-                        .orElseThrow(() -> {
-                            logger.error("Failed to create payment and no existing payment found with idempotency key: {}", idempotencyKey);
-                            return new PaymentPersistenceException("Error saving payment and no existing payment found with idempotency key: " + idempotencyKey);
-                        });
-                }
-            });
+                .map(existingPayment -> {
+                    logger.info("Payment with idempotency key {} already exists. Reusing existing payment with ID: {}",
+                            idempotencyKey, existingPayment.getId());
+                    return new CreatePaymentResult(existingPayment, false);
+                })
+                .orElseGet(() -> {
+                    try {
+                        logger.debug("No existing payment found. Creating new payment with idempotency key: {}",
+                                idempotencyKey);
+                        Payment savedPayment = paymentRepository.save(payment);
+                        logger.info("Payment successfully created. ID: {}, idempotency key: {}, amount: {}, status: {}",
+                                savedPayment.getId(), idempotencyKey, savedPayment.getAmount(),
+                                savedPayment.getStatus());
+                        return new CreatePaymentResult(savedPayment, true);
+                    } catch (DuplicateIdempotencyKeyException e) {
+                        logger.warn("Duplicate idempotency key detected: {}. Attempting to retrieve existing payment.",
+                                idempotencyKey);
+
+                        Payment existing = paymentRepository.findByIdempotencyKey(idempotencyKey)
+                                .orElseThrow(() -> {
+                                    logger.error(
+                                            "Failed to create payment and no existing payment found with idempotency key: {}",
+                                            idempotencyKey);
+                                    return new PaymentPersistenceException(
+                                            "Error saving payment and no existing payment found with idempotency key: "
+                                                    + idempotencyKey);
+                                });
+
+                        return new CreatePaymentResult(existing, false);
+                    }
+                });
     }
 }

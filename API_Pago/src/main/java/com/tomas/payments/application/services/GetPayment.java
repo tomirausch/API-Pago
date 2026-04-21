@@ -22,7 +22,7 @@ public class GetPayment implements GetPaymentUseCase {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public Optional<Payment> findByIdempotencyKey(String idempotencyKey) {
         logger.debug("Searching for payment with idempotency key: {}", idempotencyKey);
         Optional<Payment> payment = paymentRepository.findByIdempotencyKey(idempotencyKey);
