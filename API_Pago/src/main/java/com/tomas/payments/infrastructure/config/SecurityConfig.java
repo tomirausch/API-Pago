@@ -20,7 +20,7 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/actuator/**").permitAll()
+                    .requestMatchers("/actuator/**", "/health").permitAll()
                     .anyRequest().authenticated()
             )
             .httpBasic(basic -> {});
@@ -37,7 +37,8 @@ public class SecurityConfig {
         return new InMemoryUserDetailsManager(user);
     }
 
-    private PasswordEncoder passwordEncoder() {
+    @Bean
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
