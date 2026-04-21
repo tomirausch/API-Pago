@@ -1,6 +1,6 @@
 package com.tomas.payments.infrastructure.adapters.input.rest.dto;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 import com.tomas.payments.infrastructure.adapters.input.rest.exceptions.ErrorCode;
@@ -10,12 +10,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
-@AllArgsConstructor
+@AllArgsConstructor 
 @NoArgsConstructor
 public class ErrorResponse {
 
     private String message;
-    private LocalDateTime timestamp;
+    private Instant timestamp;
     private ErrorCode code;
     private List<String> errors;
     private String path;
