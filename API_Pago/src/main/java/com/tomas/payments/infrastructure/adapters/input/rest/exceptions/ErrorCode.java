@@ -7,5 +7,4 @@ public enum ErrorCode {
     INVALID_ARGUMENT,
     INTERNAL_ERROR,
     PAYMENT_NOT_FOUND,
-    EXTERNAL_SERVICE_ERROR,
 }

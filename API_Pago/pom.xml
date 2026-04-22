@@ -11,25 +11,37 @@
 	<groupId>com.tomas</groupId>
 	<artifactId>API_Pago</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name/>
-	<description/>
-	<url/>
+	<name>API_Pago</name>
+	<description>API for payment processing</description>
+	<url>https://github.com/tomirausch/API-Pago</url>
 	<licenses>
-		<license/>
+		<license>
+			<name>MIT License</name>
+			<url>https://opensource.org/licenses/MIT</url>
+		</license>
 	</licenses>
 	<developers>
-		<developer/>
+		<developer>
+			<name>Tomas Rausch</name>
+			<email>tomas.rausch13@gmail.com</email>
+		</developer>
 	</developers>
 	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
+		<connection>scm:git:https://github.com/tomirausch/API-Pago.git</connection>
+		<developerConnection>scm:git:https://github.com/tomirausch/API-Pago.git</developerConnection>
+		<tag>HEAD</tag>
+		<url>https://github.com/tomirausch/API-Pago</url>
 	</scm>
 	<properties>
 		<java.version>21</java.version>
 	</properties>
 	<dependencies>
+
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+		</dependency>
+
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

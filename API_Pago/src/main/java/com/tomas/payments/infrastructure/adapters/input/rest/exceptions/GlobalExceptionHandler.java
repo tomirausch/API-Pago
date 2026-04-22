@@ -126,7 +126,6 @@ public class GlobalExceptionHandler {
             case INVALID_ARGUMENT -> "Invalid argument provided";
             case INTERNAL_ERROR -> "Internal server error";
             case PAYMENT_NOT_FOUND -> "Payment not found";
-            case EXTERNAL_SERVICE_ERROR -> "External service error";
         };
     }
 
