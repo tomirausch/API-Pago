@@ -26,7 +26,7 @@ import jakarta.validation.constraints.NotBlank;
 
 @Validated
 @RestController
-@RequestMapping("/payments")
+@RequestMapping("api/v1/payments")
 public class PaymentController {
 
     private final CreatePaymentUseCase createPayment;
