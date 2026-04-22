@@ -27,16 +27,18 @@ public class Payment {
         if(amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Amount must be greater than zero");
         }
-        if(currency == null || currency.isEmpty()) {
-            throw new IllegalArgumentException("Currency is required");
+        if(!currencyValid(currency)) {
+            throw new IllegalArgumentException("Invalid currency code");
         }
+
+        LocalDateTime now = LocalDateTime.now();
         return Payment.builder()
             .idempotencyKey(idempotencyKey)
             .amount(amount)
             .currency(currency)
             .status(PaymentStatus.PENDING)
-            .createdAt(LocalDateTime.now())
-            .updatedAt(LocalDateTime.now())
+            .createdAt(now)
+            .updatedAt(now)
             .build();
     }
 
@@ -61,6 +63,11 @@ public class Payment {
 
         this.status = newStatus;
         this.updatedAt = LocalDateTime.now();
+    }
+
+    private static boolean currencyValid(String currency) {
+        // Implement basic currency code validation (e.g., ISO 4217)
+        return currency != null && currency.matches("^[A-Z]{3}$");
     }
 
 }
