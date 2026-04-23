@@ -2,9 +2,12 @@ package com.tomas.payments.infrastructure.adapters.output.persistence;
 
 import java.util.Optional;
 
+import org.springframework.stereotype.Repository;
+
 import com.tomas.payments.application.ports.output.UserRepositoryPort;
 import com.tomas.payments.domain.model.User;
 
+@Repository
 public class JpaUserRepositoryAdapter implements UserRepositoryPort {
 
     private final SpringDataUserRepository springDataUserRepository;
