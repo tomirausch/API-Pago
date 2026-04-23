@@ -18,7 +18,7 @@ public class JwtService {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtService.class);
     private static final long TOKEN_EXPIRATION_MS = 1000 * 60 * 60; // 1 hour
-    private static final String SECRET_ENV_KEY = "jwt_secret_key";
+    private static final String SECRET_ENV_KEY = "JWT_SECRET_KEY";
     private static final int MINIMUM_SECRET_LENGTH = 32; // 256 bits
 
     private final String secret;

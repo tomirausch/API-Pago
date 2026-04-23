@@ -1,7 +1,9 @@
 package com.tomas.payments.infrastructure.adapters.output.persistence;
 
+import com.tomas.payments.domain.model.User;
+
 public class UserPersistenceMapper {
-    public static UserEntity toEntity(com.tomas.payments.domain.model.User user) {
+    public static UserEntity toEntity(User user) {
         if (user == null) {
             return null;
         }
@@ -13,11 +15,11 @@ public class UserPersistenceMapper {
         return entity;
     }
 
-    public static com.tomas.payments.domain.model.User toDomain(UserEntity entity) {
+    public static User toDomain(UserEntity entity) {
         if (entity == null) {
             return null;
         }
-        return new com.tomas.payments.domain.model.User(
+        return new User(
                 entity.getId(),
                 entity.getUsername(),
                 entity.getPassword(),
