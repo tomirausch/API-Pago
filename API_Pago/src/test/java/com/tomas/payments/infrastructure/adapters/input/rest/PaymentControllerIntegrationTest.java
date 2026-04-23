@@ -5,6 +5,7 @@ import com.tomas.payments.domain.model.PaymentStatus;
 import com.tomas.payments.infrastructure.adapters.input.rest.dto.PaymentRequest;
 import com.tomas.payments.infrastructure.adapters.input.rest.dto.UpdateStatusRequest;
 import com.tomas.payments.infrastructure.adapters.output.persistence.SpringDataPaymentRepository;
+import com.tomas.payments.infrastructure.security.JwtService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -30,6 +30,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 @Transactional
 class PaymentControllerIntegrationTest {
 
+    private static final String API_BASE_PATH = "/api/v1/payments";
+    private static final String TEST_USERNAME = "testuser";
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -39,9 +42,20 @@ class PaymentControllerIntegrationTest {
     @Autowired
     private SpringDataPaymentRepository paymentRepository;
 
+    @Autowired
+    private JwtService jwtService;
+
+    private String jwtToken;
+
     @BeforeEach
     void setUp() {
         paymentRepository.deleteAll();
+        // Generate JWT token for testing
+        jwtToken = jwtService.generateToken(TEST_USERNAME);
+    }
+
+    private String bearerToken() {
+        return "Bearer " + jwtToken;
     }
 
     @Test
@@ -49,8 +63,8 @@ class PaymentControllerIntegrationTest {
     void shouldCreatePaymentSuccessfully() throws Exception {
         PaymentRequest request = new PaymentRequest("test-key-1", new BigDecimal("100.00"), "USD");
 
-        mockMvc.perform(post("/payments")
-                .with(httpBasic("admin", "password"))
+        mockMvc.perform(post(API_BASE_PATH)
+                .header("Authorization", bearerToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isCreated())
@@ -66,14 +80,14 @@ class PaymentControllerIntegrationTest {
     void shouldReturnOkWhenCreatingPaymentWithExistingIdempotencyKey() throws Exception {
         PaymentRequest request = new PaymentRequest("duplicate-key", new BigDecimal("50.00"), "EUR");
 
-        mockMvc.perform(post("/payments")
-                .with(httpBasic("admin", "password"))
+        mockMvc.perform(post(API_BASE_PATH)
+                .header("Authorization", bearerToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isCreated());
 
-        mockMvc.perform(post("/payments")
-                .with(httpBasic("admin", "password"))
+        mockMvc.perform(post(API_BASE_PATH)
+                .header("Authorization", bearerToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isOk());
@@ -84,8 +98,8 @@ class PaymentControllerIntegrationTest {
     void shouldReturn400WhenRequestHasInvalidData() throws Exception {
         PaymentRequest request = new PaymentRequest("", BigDecimal.ZERO, "");
 
-        mockMvc.perform(post("/payments")
-                .with(httpBasic("admin", "password"))
+        mockMvc.perform(post(API_BASE_PATH)
+                .header("Authorization", bearerToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isBadRequest());
@@ -96,14 +110,14 @@ class PaymentControllerIntegrationTest {
     void shouldFindPaymentByIdempotencyKey() throws Exception {
         PaymentRequest request = new PaymentRequest("search-key", new BigDecimal("75.50"), "USD");
 
-        mockMvc.perform(post("/payments")
-                .with(httpBasic("admin", "password"))
+        mockMvc.perform(post(API_BASE_PATH)
+                .header("Authorization", bearerToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isCreated());
 
-        mockMvc.perform(get("/payments/idempotency/search-key")
-                .with(httpBasic("admin", "password")))
+        mockMvc.perform(get(API_BASE_PATH + "/idempotency/search-key")
+                .header("Authorization", bearerToken()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.idempotencyKey").value("search-key"));
     }
@@ -111,8 +125,8 @@ class PaymentControllerIntegrationTest {
     @Test
     @DisplayName("Should return 404 when payment not found by idempotency key")
     void shouldReturn404WhenPaymentNotFoundByIdempotencyKey() throws Exception {
-        mockMvc.perform(get("/payments/idempotency/non-existent-key")
-                .with(httpBasic("admin", "password")))
+        mockMvc.perform(get(API_BASE_PATH + "/idempotency/non-existent-key")
+                .header("Authorization", bearerToken()))
             .andExpect(status().isNotFound());
     }
 
@@ -120,8 +134,8 @@ class PaymentControllerIntegrationTest {
     @DisplayName("Should update payment status successfully")
     void shouldUpdatePaymentStatusSuccessfully() throws Exception {
         PaymentRequest createRequest = new PaymentRequest("update-status-key", new BigDecimal("200.00"), "USD");
-        String createResponse = mockMvc.perform(post("/payments")
-                .with(httpBasic("admin", "password"))
+        String createResponse = mockMvc.perform(post(API_BASE_PATH)
+                .header("Authorization", bearerToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createRequest)))
             .andExpect(status().isCreated())
@@ -132,8 +146,8 @@ class PaymentControllerIntegrationTest {
         UUID paymentId = UUID.fromString(objectMapper.readTree(createResponse).get("id").asText().replaceAll("\"", ""));
 
         UpdateStatusRequest updateRequest = new UpdateStatusRequest(PaymentStatus.COMPLETED);
-        mockMvc.perform(patch("/payments/" + paymentId + "/status")
-                .with(httpBasic("admin", "password"))
+        mockMvc.perform(patch(API_BASE_PATH + "/" + paymentId + "/status")
+                .header("Authorization", bearerToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(updateRequest)))
             .andExpect(status().isOk())
@@ -145,8 +159,8 @@ class PaymentControllerIntegrationTest {
     void shouldReturn404WhenUpdatingNonExistentPaymentStatus() throws Exception {
         UpdateStatusRequest updateRequest = new UpdateStatusRequest(PaymentStatus.COMPLETED);
 
-        mockMvc.perform(patch("/payments/" + UUID.randomUUID() + "/status")
-                .with(httpBasic("admin", "password"))
+        mockMvc.perform(patch(API_BASE_PATH + "/" + UUID.randomUUID() + "/status")
+                .header("Authorization", bearerToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(updateRequest)))
             .andExpect(status().isNotFound());
@@ -156,8 +170,8 @@ class PaymentControllerIntegrationTest {
     @DisplayName("Should return 400 when updating to invalid status")
     void shouldReturn400WhenUpdatingToInvalidStatus() throws Exception {
         PaymentRequest createRequest = new PaymentRequest("invalid-transition-key", new BigDecimal("100.00"), "USD");
-        String createResponse = mockMvc.perform(post("/payments")
-                .with(httpBasic("admin", "password"))
+        String createResponse = mockMvc.perform(post(API_BASE_PATH)
+                .header("Authorization", bearerToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createRequest)))
             .andExpect(status().isCreated())
@@ -168,15 +182,15 @@ class PaymentControllerIntegrationTest {
         UUID paymentId = UUID.fromString(objectMapper.readTree(createResponse).get("id").asText().replaceAll("\"", ""));
 
         UpdateStatusRequest completeRequest = new UpdateStatusRequest(PaymentStatus.COMPLETED);
-        mockMvc.perform(patch("/payments/" + paymentId + "/status")
-                .with(httpBasic("admin", "password"))
+        mockMvc.perform(patch(API_BASE_PATH + "/" + paymentId + "/status")
+                .header("Authorization", bearerToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(completeRequest)))
             .andExpect(status().isOk());
 
         UpdateStatusRequest failRequest = new UpdateStatusRequest(PaymentStatus.FAILED);
-        mockMvc.perform(patch("/payments/" + paymentId + "/status")
-                .with(httpBasic("admin", "password"))
+        mockMvc.perform(patch(API_BASE_PATH + "/" + paymentId + "/status")
+                .header("Authorization", bearerToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(failRequest)))
             .andExpect(status().isBadRequest());
@@ -186,8 +200,8 @@ class PaymentControllerIntegrationTest {
     @DisplayName("Should find payment by ID")
     void shouldFindPaymentById() throws Exception {
         PaymentRequest createRequest = new PaymentRequest("find-by-id-key", new BigDecimal("150.00"), "EUR");
-        String createResponse = mockMvc.perform(post("/payments")
-                .with(httpBasic("admin", "password"))
+        String createResponse = mockMvc.perform(post(API_BASE_PATH)
+                .header("Authorization", bearerToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createRequest)))
             .andExpect(status().isCreated())
@@ -197,8 +211,8 @@ class PaymentControllerIntegrationTest {
 
         UUID paymentId = UUID.fromString(objectMapper.readTree(createResponse).get("id").asText().replaceAll("\"", ""));
 
-        mockMvc.perform(get("/payments/" + paymentId)
-                .with(httpBasic("admin", "password")))
+        mockMvc.perform(get(API_BASE_PATH + "/" + paymentId)
+                .header("Authorization", bearerToken()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.id").value(paymentId.toString()))
             .andExpect(jsonPath("$.idempotencyKey").value("find-by-id-key"));
@@ -207,8 +221,8 @@ class PaymentControllerIntegrationTest {
     @Test
     @DisplayName("Should return 404 when payment not found by ID")
     void shouldReturn404WhenPaymentNotFoundById() throws Exception {
-        mockMvc.perform(get("/payments/" + UUID.randomUUID())
-                .with(httpBasic("admin", "password")))
+        mockMvc.perform(get(API_BASE_PATH + "/" + UUID.randomUUID())
+                .header("Authorization", bearerToken()))
             .andExpect(status().isNotFound());
     }
 }
