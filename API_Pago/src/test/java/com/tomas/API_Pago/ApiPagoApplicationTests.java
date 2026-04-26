@@ -4,7 +4,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
-@SpringBootTest
+import com.tomas.payments.PaymentsApplication;
+
+@SpringBootTest(classes = PaymentsApplication.class)
 @ActiveProfiles("test")
 class ApiPagoApplicationTests {
 
