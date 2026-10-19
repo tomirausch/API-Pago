@@ -6,6 +6,8 @@ import javax.crypto.SecretKey;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import io.jsonwebtoken.ExpiredJwtException;
@@ -23,23 +25,29 @@ public class JwtService {
 
     private final String secret;
 
-    public JwtService() {
-        this.secret = System.getenv(SECRET_ENV_KEY);
+    @Autowired
+    public JwtService(@Value("${JWT_SECRET_KEY:${jwt.secret-key:}}") String secret) {
+        String resolvedSecret = (secret != null && !secret.isBlank()) ? secret : System.getenv(SECRET_ENV_KEY);
+        this.secret = resolvedSecret;
         validateSecret();
+    }
+
+    public JwtService() {
+        this(System.getenv(SECRET_ENV_KEY));
     }
 
     private void validateSecret() {
         if (secret == null || secret.isEmpty()) {
             logger.error("JWT secret key not configured. Set environment variable: {}", SECRET_ENV_KEY);
-            throw new IllegalStateException("JWT secret key not configured. Set environment variable: " + SECRET_ENV_KEY);
+            throw new IllegalStateException(
+                    "JWT secret key not configured. Set environment variable: " + SECRET_ENV_KEY);
         }
 
         if (secret.length() < MINIMUM_SECRET_LENGTH) {
-            logger.error("JWT secret key is too short. Minimum {} characters required, got {}", 
-                MINIMUM_SECRET_LENGTH, secret.length());
+            logger.error("JWT secret key is too short. Minimum {} characters required, got {}",
+                    MINIMUM_SECRET_LENGTH, secret.length());
             throw new IllegalStateException(
-                "JWT secret must be at least " + MINIMUM_SECRET_LENGTH + " characters (256 bits) for HMAC-SHA256"
-            );
+                    "JWT secret must be at least " + MINIMUM_SECRET_LENGTH + " characters (256 bits) for HMAC-SHA256");
         }
 
         logger.info("JWT secret key validated successfully");

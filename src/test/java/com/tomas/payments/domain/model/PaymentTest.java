@@ -1,5 +1,6 @@
 package com.tomas.payments.domain.model;
 
+import com.tomas.payments.domain.exceptions.InvalidPaymentStatusTransitionException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -99,7 +100,7 @@ class PaymentTest {
         Payment payment = Payment.create("key-123", new BigDecimal("100.00"), "USD");
         payment.updateStatus(PaymentStatus.COMPLETED);
 
-        assertThrows(IllegalStateException.class, () ->
+        assertThrows(InvalidPaymentStatusTransitionException.class, () ->
             payment.updateStatus(PaymentStatus.FAILED));
     }
 
@@ -109,7 +110,7 @@ class PaymentTest {
         Payment payment = Payment.create("key-123", new BigDecimal("100.00"), "USD");
         payment.updateStatus(PaymentStatus.FAILED);
 
-        assertThrows(IllegalStateException.class, () ->
+        assertThrows(InvalidPaymentStatusTransitionException.class, () ->
             payment.updateStatus(PaymentStatus.COMPLETED));
     }
 
@@ -127,7 +128,7 @@ class PaymentTest {
     void shouldThrowExceptionForInvalidStatusTransition() {
         Payment payment = Payment.create("key-123", new BigDecimal("100.00"), "USD");
 
-        assertThrows(IllegalArgumentException.class, () ->
+        assertThrows(InvalidPaymentStatusTransitionException.class, () ->
             payment.updateStatus(PaymentStatus.PENDING));
     }
 }

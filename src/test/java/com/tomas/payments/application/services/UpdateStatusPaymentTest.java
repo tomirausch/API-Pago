@@ -1,6 +1,7 @@
 package com.tomas.payments.application.services;
 
 import com.tomas.payments.application.ports.output.PaymentRepositoryPort;
+import com.tomas.payments.domain.exceptions.InvalidPaymentStatusTransitionException;
 import com.tomas.payments.domain.exceptions.PaymentNotFoundException;
 import com.tomas.payments.domain.model.Payment;
 import com.tomas.payments.domain.model.PaymentStatus;
@@ -84,8 +85,8 @@ class UpdateStatusPaymentTest {
     }
 
     @Test
-    @DisplayName("Should throw IllegalStateException when updating COMPLETED payment")
-    void shouldThrowIllegalStateExceptionWhenUpdatingCompletedPayment() {
+    @DisplayName("Should throw InvalidPaymentStatusTransitionException when updating COMPLETED payment")
+    void shouldThrowInvalidPaymentStatusTransitionExceptionWhenUpdatingCompletedPayment() {
         UUID paymentId = UUID.randomUUID();
         Payment payment = Payment.builder()
             .id(paymentId)
@@ -97,13 +98,13 @@ class UpdateStatusPaymentTest {
 
         when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(payment));
 
-        assertThrows(IllegalStateException.class, () ->
+        assertThrows(InvalidPaymentStatusTransitionException.class, () ->
             updateStatusPayment.updateStatus(paymentId, PaymentStatus.FAILED));
     }
 
     @Test
-    @DisplayName("Should throw IllegalStateException when updating FAILED payment")
-    void shouldThrowIllegalStateExceptionWhenUpdatingFailedPayment() {
+    @DisplayName("Should throw InvalidPaymentStatusTransitionException when updating FAILED payment")
+    void shouldThrowInvalidPaymentStatusTransitionExceptionWhenUpdatingFailedPayment() {
         UUID paymentId = UUID.randomUUID();
         Payment payment = Payment.builder()
             .id(paymentId)
@@ -115,7 +116,7 @@ class UpdateStatusPaymentTest {
 
         when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(payment));
 
-        assertThrows(IllegalStateException.class, () ->
+        assertThrows(InvalidPaymentStatusTransitionException.class, () ->
             updateStatusPayment.updateStatus(paymentId, PaymentStatus.COMPLETED));
     }
 }

@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import com.tomas.payments.domain.exceptions.InvalidPaymentStatusTransitionException;
+
 import lombok.*;
 
 @Getter
@@ -48,16 +50,16 @@ public class Payment {
         }
 
         if (this.status == PaymentStatus.COMPLETED) {
-            throw new IllegalStateException("Cannot change a COMPLETED payment");
+            throw new InvalidPaymentStatusTransitionException("Cannot change a COMPLETED payment");
         }
 
         if (this.status == PaymentStatus.FAILED) {
-            throw new IllegalStateException("Cannot change a FAILED payment");
+            throw new InvalidPaymentStatusTransitionException("Cannot change a FAILED payment");
         }
 
         if (this.status == PaymentStatus.PENDING) {
             if (newStatus != PaymentStatus.COMPLETED && newStatus != PaymentStatus.FAILED) {
-                throw new IllegalArgumentException("Invalid status transition from PENDING");
+                throw new InvalidPaymentStatusTransitionException("Invalid status transition from PENDING");
             }
         }
 

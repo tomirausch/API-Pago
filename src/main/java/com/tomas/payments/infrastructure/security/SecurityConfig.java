@@ -17,17 +17,17 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  *
  * CSRF Protection Decision:
  * ✓ CSRF is disabled for this stateless REST API because:
- *   - API uses JWT tokens (Bearer authentication), not session cookies
- *   - Stateless architecture (SessionCreationPolicy.STATELESS)
- *   - CSRF attacks require session-based authentication to be effective
- *   - CSRF tokens are unnecessary for token-based APIs
- *   - This is standard practice in REST APIs (RFC 6749, OAuth 2.0)
+ * - API uses JWT tokens (Bearer authentication), not session cookies
+ * - Stateless architecture (SessionCreationPolicy.STATELESS)
+ * - CSRF attacks require session-based authentication to be effective
+ * - CSRF tokens are unnecessary for token-based APIs
+ * - This is standard practice in REST APIs (RFC 6749, OAuth 2.0)
  *
  * Security is maintained through:
- *   - JWT validation on every request
- *   - HTTPS requirement (at deployment)
- *   - Token expiration (1 hour)
- *   - Secure token generation (HMAC-SHA256, minimum 256-bit key)
+ * - JWT validation on every request
+ * - HTTPS requirement (at deployment)
+ * - Token expiration (1 hour)
+ * - Secure token generation (HMAC-SHA256, minimum 256-bit key)
  */
 @Configuration
 @EnableWebSecurity
@@ -43,21 +43,20 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
-            // CSRF disabled: stateless API with JWT token-based auth (not session-based)
-            .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(authRequest ->
-                authRequest
-                    // Public endpoints: authentication routes
-                    .requestMatchers(AUTH_PATH).permitAll()
-                    // All other endpoints require authentication
-                    .anyRequest().authenticated()
-                )
-            // Stateless API: no session cookies
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            // Add JWT filter before standard authentication filter
-            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-            .build();
+                // CSRF disabled: stateless API with JWT token-based auth (not session-based)
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(authRequest -> authRequest
+                        // Public endpoints: authentication routes
+                        .requestMatchers(AUTH_PATH).permitAll()
+                        // All other endpoints require authentication
+                        .anyRequest().authenticated())
+                // Stateless API: no session cookies
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // Add JWT filter before standard authentication filter
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .build();
     }
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

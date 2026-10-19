@@ -16,6 +16,7 @@ import org.springframework.web.context.request.WebRequest;
 
 import com.tomas.payments.application.exceptions.PaymentPersistenceException;
 import com.tomas.payments.domain.exceptions.DuplicateIdempotencyKeyException;
+import com.tomas.payments.domain.exceptions.InvalidPaymentStatusTransitionException;
 import com.tomas.payments.domain.exceptions.PaymentNotFoundException;
 import com.tomas.payments.infrastructure.adapters.input.rest.dto.ErrorResponse;
 
@@ -55,9 +56,9 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(PaymentPersistenceException.class)
     public ResponseEntity<ErrorResponse> handlePaymentPersistence(PaymentPersistenceException e, WebRequest request) {
-        
+
         logger.error("Payment persistence error. Path: {} - Message: {}", extractPath(request), e.getMessage());
-        
+
         ErrorResponse error = new ErrorResponse(
                 resolveMessage(ErrorCode.PAYMENT_PERSISTENCE_ERROR, null),
                 Instant.now(),
@@ -70,9 +71,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleMethodArgumentNotValid(MethodArgumentNotValidException e,
             WebRequest request) {
-        
+
         logger.warn("Validation failed. Path: {} - Message: {}", extractPath(request), e.getMessage());
-        
+
         List<String> details = e.getBindingResult()
                 .getFieldErrors()
                 .stream()
@@ -92,7 +93,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException e, WebRequest request) {
         logger.warn("Invalid argument. Path: {} - message: {}", extractPath(request), e.getMessage());
         ErrorResponse error = new ErrorResponse(
-                resolveMessage(ErrorCode.INVALID_ARGUMENT, null),
+                resolveMessage(ErrorCode.INVALID_ARGUMENT, e.getMessage()),
                 Instant.now(),
                 ErrorCode.INVALID_ARGUMENT.name(),
                 null,
@@ -100,10 +101,22 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
+    @ExceptionHandler(InvalidPaymentStatusTransitionException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidStatusTransition(InvalidPaymentStatusTransitionException e,
+            WebRequest request) {
+        logger.warn("Invalid payment status transition. Path: {} - Message: {}", extractPath(request), e.getMessage());
+        ErrorResponse error = new ErrorResponse(
+                resolveMessage(ErrorCode.INVALID_STATUS_TRANSITION, e.getMessage()),
+                Instant.now(),
+                ErrorCode.INVALID_STATUS_TRANSITION.name(),
+                null,
+                request.getDescription(false));
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneric(Exception e, WebRequest request) {
-        
-        
+
         logger.error("Unexpected error. path: {}", extractPath(request), e);
 
         ErrorResponse error = new ErrorResponse(
@@ -127,11 +140,12 @@ public class GlobalExceptionHandler {
             case INVALID_ARGUMENT -> "Invalid argument provided";
             case INTERNAL_ERROR -> "Internal server error";
             case PAYMENT_NOT_FOUND -> "Payment not found";
+            case INVALID_STATUS_TRANSITION -> "Invalid payment status transition";
         };
     }
 
     private String extractPath(WebRequest request) {
-        if(request instanceof ServletWebRequest) {
+        if (request instanceof ServletWebRequest) {
             ServletWebRequest servletRequest = (ServletWebRequest) request;
             return servletRequest
                     .getRequest()

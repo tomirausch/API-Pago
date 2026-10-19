@@ -5,15 +5,11 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.tomas.payments.application.ports.input.GetPaymentUseCase;
 import com.tomas.payments.application.ports.output.PaymentRepositoryPort;
 import com.tomas.payments.domain.model.Payment;
 
-@Service
-@Transactional(readOnly = true)
 public class GetPayment implements GetPaymentUseCase {
 
     private static final Logger logger = LoggerFactory.getLogger(GetPayment.class);

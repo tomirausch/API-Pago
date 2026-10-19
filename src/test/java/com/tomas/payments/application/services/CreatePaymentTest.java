@@ -90,9 +90,10 @@ class CreatePaymentTest {
             .status(PaymentStatus.COMPLETED)
             .build();
 
-        when(paymentRepository.findByIdempotencyKey(idempotencyKey)).thenReturn(Optional.empty());
+        when(paymentRepository.findByIdempotencyKey(idempotencyKey))
+            .thenReturn(Optional.empty())
+            .thenReturn(Optional.of(existingPayment));
         when(paymentRepository.save(any(Payment.class))).thenThrow(new DuplicateIdempotencyKeyException("Duplicate key"));
-        when(paymentRepository.findByIdempotencyKey(idempotencyKey)).thenReturn(Optional.of(existingPayment));
 
         CreatePaymentResult result = createPayment.createPayment(payment);
 
@@ -106,9 +107,10 @@ class CreatePaymentTest {
         String idempotencyKey = "key-123";
         Payment payment = Payment.create(idempotencyKey, new BigDecimal("100.00"), "USD");
 
-        when(paymentRepository.findByIdempotencyKey(idempotencyKey)).thenReturn(Optional.empty());
+        when(paymentRepository.findByIdempotencyKey(idempotencyKey))
+            .thenReturn(Optional.empty())
+            .thenReturn(Optional.empty());
         when(paymentRepository.save(any(Payment.class))).thenThrow(new DuplicateIdempotencyKeyException("Duplicate key"));
-        when(paymentRepository.findByIdempotencyKey(idempotencyKey)).thenReturn(Optional.empty());
 
         assertThrows(PaymentPersistenceException.class, () ->
             createPayment.createPayment(payment));

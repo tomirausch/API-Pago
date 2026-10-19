@@ -5,6 +5,8 @@ import com.tomas.payments.domain.model.PaymentStatus;
 import com.tomas.payments.infrastructure.adapters.input.rest.dto.PaymentRequest;
 import com.tomas.payments.infrastructure.adapters.input.rest.dto.UpdateStatusRequest;
 import com.tomas.payments.infrastructure.adapters.output.persistence.SpringDataPaymentRepository;
+import com.tomas.payments.infrastructure.adapters.output.persistence.SpringDataUserRepository;
+import com.tomas.payments.infrastructure.adapters.output.persistence.UserEntity;
 import com.tomas.payments.infrastructure.security.JwtService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -43,13 +45,24 @@ class PaymentControllerIntegrationTest {
     private SpringDataPaymentRepository paymentRepository;
 
     @Autowired
+    private SpringDataUserRepository userRepository;
+
+    @Autowired
     private JwtService jwtService;
 
     private String jwtToken;
 
     @BeforeEach
     void setUp() {
+        userRepository.deleteAll();
         paymentRepository.deleteAll();
+
+        userRepository.save(UserEntity.builder()
+            .username(TEST_USERNAME)
+            .password("password123")
+            .role("USER")
+            .build());
+
         // Generate JWT token for testing
         jwtToken = jwtService.generateToken(TEST_USERNAME);
     }
@@ -131,7 +144,7 @@ class PaymentControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should update payment status successfully")
+    @DisplayName("Should update payment status from PENDING to COMPLETED successfully")
     void shouldUpdatePaymentStatusSuccessfully() throws Exception {
         PaymentRequest createRequest = new PaymentRequest("update-status-key", new BigDecimal("200.00"), "USD");
         String createResponse = mockMvc.perform(post(API_BASE_PATH)
@@ -155,6 +168,30 @@ class PaymentControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("Should update payment status from PENDING to FAILED successfully")
+    void shouldUpdatePaymentStatusToFailedSuccessfully() throws Exception {
+        PaymentRequest createRequest = new PaymentRequest("fail-transition-key", new BigDecimal("150.00"), "USD");
+        String createResponse = mockMvc.perform(post(API_BASE_PATH)
+                .header("Authorization", bearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createRequest)))
+            .andExpect(status().isCreated())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        UUID paymentId = UUID.fromString(objectMapper.readTree(createResponse).get("id").asText().replaceAll("\"", ""));
+
+        UpdateStatusRequest updateRequest = new UpdateStatusRequest(PaymentStatus.FAILED);
+        mockMvc.perform(patch(API_BASE_PATH + "/" + paymentId + "/status")
+                .header("Authorization", bearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateRequest)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.status").value("FAILED"));
+    }
+
+    @Test
     @DisplayName("Should return 404 when updating non-existent payment status")
     void shouldReturn404WhenUpdatingNonExistentPaymentStatus() throws Exception {
         UpdateStatusRequest updateRequest = new UpdateStatusRequest(PaymentStatus.COMPLETED);
@@ -167,9 +204,9 @@ class PaymentControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should return 400 when updating to invalid status")
-    void shouldReturn400WhenUpdatingToInvalidStatus() throws Exception {
-        PaymentRequest createRequest = new PaymentRequest("invalid-transition-key", new BigDecimal("100.00"), "USD");
+    @DisplayName("Should return 400 when updating COMPLETED payment")
+    void shouldReturn400WhenUpdatingCompletedPayment() throws Exception {
+        PaymentRequest createRequest = new PaymentRequest("completed-transition-key", new BigDecimal("100.00"), "USD");
         String createResponse = mockMvc.perform(post(API_BASE_PATH)
                 .header("Authorization", bearerToken())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -193,7 +230,63 @@ class PaymentControllerIntegrationTest {
                 .header("Authorization", bearerToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(failRequest)))
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("INVALID_STATUS_TRANSITION"));
+    }
+
+    @Test
+    @DisplayName("Should return 400 when updating FAILED payment")
+    void shouldReturn400WhenUpdatingFailedPayment() throws Exception {
+        PaymentRequest createRequest = new PaymentRequest("failed-transition-key", new BigDecimal("100.00"), "USD");
+        String createResponse = mockMvc.perform(post(API_BASE_PATH)
+                .header("Authorization", bearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createRequest)))
+            .andExpect(status().isCreated())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        UUID paymentId = UUID.fromString(objectMapper.readTree(createResponse).get("id").asText().replaceAll("\"", ""));
+
+        UpdateStatusRequest failRequest = new UpdateStatusRequest(PaymentStatus.FAILED);
+        mockMvc.perform(patch(API_BASE_PATH + "/" + paymentId + "/status")
+                .header("Authorization", bearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(failRequest)))
+            .andExpect(status().isOk());
+
+        UpdateStatusRequest completeRequest = new UpdateStatusRequest(PaymentStatus.COMPLETED);
+        mockMvc.perform(patch(API_BASE_PATH + "/" + paymentId + "/status")
+                .header("Authorization", bearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(completeRequest)))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("INVALID_STATUS_TRANSITION"));
+    }
+
+    @Test
+    @DisplayName("Should return 400 when transitioning from PENDING to PENDING")
+    void shouldReturn400WhenTransitioningPendingToPending() throws Exception {
+        PaymentRequest createRequest = new PaymentRequest("pending-to-pending-key", new BigDecimal("100.00"), "USD");
+        String createResponse = mockMvc.perform(post(API_BASE_PATH)
+                .header("Authorization", bearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createRequest)))
+            .andExpect(status().isCreated())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        UUID paymentId = UUID.fromString(objectMapper.readTree(createResponse).get("id").asText().replaceAll("\"", ""));
+
+        UpdateStatusRequest pendingRequest = new UpdateStatusRequest(PaymentStatus.PENDING);
+        mockMvc.perform(patch(API_BASE_PATH + "/" + paymentId + "/status")
+                .header("Authorization", bearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(pendingRequest)))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("INVALID_STATUS_TRANSITION"));
     }
 
     @Test

@@ -4,8 +4,6 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.tomas.payments.application.ports.input.UpdatePaymentStatusUseCase;
 import com.tomas.payments.application.ports.output.PaymentRepositoryPort;
@@ -13,8 +11,6 @@ import com.tomas.payments.domain.exceptions.PaymentNotFoundException;
 import com.tomas.payments.domain.model.Payment;
 import com.tomas.payments.domain.model.PaymentStatus;
 
-@Service
-@Transactional
 public class UpdateStatusPayment implements UpdatePaymentStatusUseCase {
 
     private static final Logger logger = LoggerFactory.getLogger(UpdateStatusPayment.class);
