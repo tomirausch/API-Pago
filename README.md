@@ -26,6 +26,7 @@ La aplicación utiliza variables de entorno para configurar la conexión a la ba
 | `APP_DATASOURCE_URL` | URL de conexión a la base de datos |
 | `APP_USER` | Usuario de la base de datos |
 | `APP_PASSWORD` | Contraseña de la base de datos |
+| `JWT_SECRET_KEY` | Clave para firmar los tokens JWT (mínimo 32 caracteres) |
 
 Configura estas variables en tu entorno de ejecución antes de iniciar la aplicación. No utilices credenciales reales en archivos públicos ni las subas al repositorio.
 
@@ -35,7 +36,7 @@ Clona el repositorio y accede a la carpeta del proyecto:
 
 ```bash
 git clone https://github.com/tomirausch/API-Pago.git
-cd API-Pago/API_Pago
+cd API-Pago
 ```
 
 ### Compilar el proyecto
@@ -64,6 +65,33 @@ mvn clean package
 
 Luego, ejecuta el JAR generado dentro de la carpeta `target`, utilizando el nombre correspondiente al artefacto configurado en Maven.
 
+## Endpoints
+
+| Método | Ruta | Descripción | Auth |
+|---|---|---|---|
+| `POST` | `/auth/login` | Devuelve un JWT | No |
+| `POST` | `/api/v1/payments` | Crea un pago (idempotente) | Bearer |
+| `GET` | `/api/v1/payments/{id}` | Consulta un pago por id | Bearer |
+| `GET` | `/api/v1/payments/idempotency/{key}` | Consulta por clave de idempotencia | Bearer |
+| `PATCH` | `/api/v1/payments/{id}/status` | Cambia el estado (`COMPLETED` o `FAILED`) | Bearer |
+
+### Ejemplo
+
+```bash
+# Login
+curl -X POST http://localhost:8080/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"<usuario>","password":"<contraseña>"}'
+
+# Crear un pago
+curl -X POST http://localhost:8080/api/v1/payments \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"idempotencyKey":"orden-1001","amount":1500.50,"currency":"ARS"}'
+```
+
+Si repetís la misma `idempotencyKey`, la API devuelve el pago existente (`200`) en lugar de crear otro (`201`).
+
 ## Tecnologías utilizadas
 
 - Java 21
@@ -76,8 +104,6 @@ Luego, ejecuta el JAR generado dentro de la carpeta `target`, utilizando el nomb
 - Spring Boot Actuator y Micrometer
 
 ## Estructura del proyecto
-
-El código fuente se encuentra dentro de `API_Pago/`:
 
 - `src/main/java`: código fuente de la aplicación.
 - `src/main/resources`: archivos de configuración.
